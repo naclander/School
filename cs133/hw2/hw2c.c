@@ -32,6 +32,7 @@ void init_fifo_buf(fifo_buf * buffer){
 	buffer->num_elms = 0;
 }
 
+//Add points to FIFO buffer
 void add_points(points * current_points, fifo_buf * buffer){
 	while(1){
 		pthread_mutex_lock(&buffer_mutex);
@@ -50,6 +51,7 @@ void add_points(points * current_points, fifo_buf * buffer){
 	return;
 }
 
+//Read points from FIFO buffer
 void read_points(points * current_points,fifo_buf * buffer){
 	while(1){
 		pthread_mutex_lock(&buffer_mutex);
@@ -74,42 +76,37 @@ double pi_approx(int num_points){
 
 	int num_in = 0;
 	int i;
-		#pragma omp parallel
+	#pragma omp parallel
+	{
+		#pragma omp sections
 		{
-			#pragma omp sections
+			#pragma omp section //Producer thread
 			{
-				#pragma omp section //Producer thread
-				{
-					for(i = 0; i < num_points; i++){
-						//printf("Producer for-loop\n");
-						points new_points;
-						new_points.x = (double)rand() / (double)RAND_MAX;
-						new_points.y = (double)rand() / (double)RAND_MAX;
-						//add points to shared buffer
-						add_points(&new_points, &shared_buf);
-						//printf("x: %f y: %f \n",x,y);
-						//sleep(1);
-					}
-					shared_buf.done = 1;
+				for(i = 0; i < num_points; i++){
+					//printf("Producer for-loop\n");
+					points new_points;
+					new_points.x = (double)rand() / (double)RAND_MAX;
+					new_points.y = (double)rand() / (double)RAND_MAX;
+					add_points(&new_points, &shared_buf);
 				}
-				#pragma omp section //Consumer thread
-				{
-					while(shared_buf.done == 0 || shared_buf.num_elms > 0){
-						//printf("Consumer for-loop\n");
-						points current_points;
-						read_points(&current_points, &shared_buf);
-						double r = sqrt( pow((current_points.x - 0.5),2) + 
-										 pow((current_points.y - 0.5),2));
-						if( r <= 0.5){
-							pthread_mutex_lock(&num_in_mutex);
-							num_in++;
-							pthread_mutex_unlock(&num_in_mutex);
-						}
+				shared_buf.done = 1;
+			}
+			#pragma omp section //Consumer thread
+			{
+				while(shared_buf.done == 0 || shared_buf.num_elms > 0){
+					points current_points;
+					read_points(&current_points, &shared_buf);
+					double r = sqrt( pow((current_points.x - 0.5),2) + 
+									 pow((current_points.y - 0.5),2));
+					if( r <= 0.5){
+						pthread_mutex_lock(&num_in_mutex);
+						num_in++;
+						pthread_mutex_unlock(&num_in_mutex);
 					}
 				}
-			}//end sections
-		}//end parallel
-
+			}
+		}//end sections
+	}//end parallel
 	return((double)4*num_in/num_points);
 }
 
