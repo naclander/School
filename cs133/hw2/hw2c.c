@@ -2,7 +2,7 @@
 #include<stdlib.h>
 #include<math.h>
 #include<pthread.h>
-#include <unistd.h>
+#include<unistd.h>
 #include<time.h>
 #include<string.h>
 
@@ -42,7 +42,6 @@ void add_points(points * current_points, fifo_buf * buffer){
 		}
 		break;
 	}
-	//printf("Writing points\n");
 	buffer->points_buf[buffer->write].x = current_points->x;
 	buffer->points_buf[buffer->write].y = current_points->y;
 	buffer->write = (buffer->write + 1) % FIFO_SIZE;
@@ -61,7 +60,6 @@ void read_points(points * current_points,fifo_buf * buffer){
 		}
 		break;
 	}	
-	//printf("Reading points\n");
 	current_points->x = buffer->points_buf[buffer->read].x;
 	current_points->y = buffer->points_buf[buffer->read].y;
 	buffer->read = (buffer->read + 1) % FIFO_SIZE;
@@ -98,7 +96,7 @@ double pi_approx(int num_points){
 					read_points(&current_points, &shared_buf);
 					double r = sqrt( pow((current_points.x - 0.5),2) + 
 									 pow((current_points.y - 0.5),2));
-					if( r <= 0.5){
+					if(r <= 0.5){
 						pthread_mutex_lock(&num_in_mutex);
 						num_in++;
 						pthread_mutex_unlock(&num_in_mutex);
