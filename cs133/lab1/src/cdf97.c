@@ -22,7 +22,7 @@
 #define a4 (0.4435068522)
 
 #define k1 1.1496043988602418
-#define k2 (1/1.1496043988602418)
+//#define k2 (1/1.1496043988602418)
 
 #define x(i, j)			x[(i)*M+(j)]
 #define tempbank(i, j)	tempbank[(i)*n+(j)]
@@ -39,7 +39,7 @@ void fwt97_pd(
 		int N, int M)
 {
 	int i, j;
-
+	#pragma omp parallel for private(i,j)
 	for (i=0; i<n; i++) {
 		// Predict 1
 		for (j=1; j<m-2; j+=2) {
@@ -81,13 +81,15 @@ void fwt97_dl_foo (
 		int N, int M) 
 {
 	int i, j;
+	double k2 = 1/1.1496043988602418;
     // de-interleave and transpose
+	#pragma omp parallel for private(i,j)
 	for (i=0; i<n; i++) {
-		for (j=0; j<m; j++) {
-            // simultaneously transpose the matrix when deinterleaving
-			if (j%2==0) 
-				tempbank(j/2, i) = k1*x(i, j);
-			else 
+        // simultaneously transpose the matrix when deinterleaving
+		for (j=0; j<m; j+= 2) {
+			tempbank(j/2, i) = k1*x(i, j);
+		}
+		for(j = 1; j<m; j+= 2){
 				tempbank(j/2+m/2, i) = k2*x(i, j);
 		}
 	}
@@ -100,14 +102,16 @@ void fwt97_dl_bar (
 		int N, int M) 
 {
 	int i, j;
+	double k2 = 1/1.1496043988602418;
     // de-interleave and transpose
+	#pragma omp parallel for private(i,j)
 	for (i=0; i<n; i++) {
-		for (j=0; j<m; j++) {
-            // simultaneously transpose the matrix when deinterleaving
-			if (j%2==0) 
-				x[(j/2)*N+i] = k1*tempbank[i*m+j];
-			else 
-				x[(j/2+m/2)*N+i] = k2*tempbank[i*m+j];
+        // simultaneously transpose the matrix when deinterleaving
+		for (j=0; j<m; j+= 2) {
+			x[(j/2)*N+i] = k1*tempbank[i*m+j];
+		}
+		for (j=1; j<m; j+= 2) {
+			x[(j/2+m/2)*N+i] = k2*tempbank[i*m+j];
 		}
 	}
 }
