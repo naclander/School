@@ -45,6 +45,7 @@ int main(int argc, char *argv[]) {
     gettimeofday(&t1, NULL);
 
 	// 3D DWT transform, which is 2D DWT for each image slices
+	#pragma omp parallel for
 	for (i=0; i<p; i++)
 		cdf97(img+i*n*m, tmp+i*n*m, m, n, level);
 
