@@ -113,11 +113,16 @@ void fwt97_dl_foo (
 	#pragma omp parallel for private(i,j)
 	for (i=0; i<n; i++) {
         // simultaneously transpose the matrix when deinterleaving
-		for (j=0; j<m; j+= 2) {
+		for (j=0; j<m/2; j+= 2) {
 			tempbank(j/2, i) = k1*x(i, j);
 		}
-		for(j = 1; j<m; j+= 2){
-				tempbank(j/2+m/2, i) = k2*x(i, j);
+		int jj;
+		for (jj = 1; j<m; j+= 2, jj += 2) {
+			tempbank(j/2, i) = k1*x(i, j);
+			tempbank(jj/2+m/2, i) = k2*x(i, jj);
+		}
+		for(; jj<m; jj+= 2){
+				tempbank(jj/2+m/2, i) = k2*x(i, jj);
 		}
 	}
 }
@@ -134,11 +139,16 @@ void fwt97_dl_bar (
 	#pragma omp parallel for private(i,j)
 	for (i=0; i<n; i++) {
         // simultaneously transpose the matrix when deinterleaving
-		for (j=0; j<m; j+= 2) {
+		for (j=0; j<m/2; j+= 2) {
 			x[(j/2)*N+i] = k1*tempbank[i*m+j];
 		}
-		for (j=1; j<m; j+= 2) {
-			x[(j/2+m/2)*N+i] = k2*tempbank[i*m+j];
+		int jj;
+		for (j=m/2, jj = 1; j<m; j+= 2, jj+=2) {
+			x[(j/2)*N+i] = k1*tempbank[i*m+j];
+			x[(jj/2+m/2)*N+i] = k2*tempbank[i*m+jj];
+		}
+		for (; jj<m; jj+= 2) {
+			x[(jj/2+m/2)*N+i] = k2*tempbank[i*m+jj];
 		}
 	}
 }

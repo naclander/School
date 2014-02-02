@@ -5,7 +5,7 @@ EXEDIR	= ../bin
 DWT2_EXEC = dwt2d
 DWT3_EXEC = dwt3d
 
-LINK = -O3 -lm -pg #-fopenmp
+LINK = -O3 -lm -fopenmp
 
 all: $(EXEDIR)/$(DWT2_EXEC) $(EXEDIR)/$(DWT3_EXEC) 
 
