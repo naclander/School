@@ -38,30 +38,57 @@ void fwt97_pd(
 		int n, int m,
 		int N, int M)
 {
-	int i, j;
-	#pragma omp parallel for private(i,j)
-	for (i=0; i<n; i++) {
-		// Predict 1
-		for (j=1; j<m-2; j+=2) {
-			x(i, j) += a1*(x(i, j-1) + x(i, j+1));
-		} 
-		x(i, m-1) += 2*a1*x(i, m-2);
-		// Update 1
-		for (j=2; j<m; j+=2) {
-			x(i, j) += a2*(x(i, j-1) + x(i, j+1));
-		}
+	int i, j, jj, ii, iii, iiii;
+	#pragma omp parallel for private(i,j) 
+	for (i=0; i<n; i+=1) {	
+		ii = i+1;
+		iii = ii+1;
+		iiii = iii+1;
+
+
+		j = 1;
+		x(i, j) += a1*(x(i, j-1) + x(i, j+1));
 		x(i, 0) += 2*a2*x(i, 1);
-		// Predict 2
-		for (j=1; j<m-2; j+=2) {
+		j+=2;
+		x(i, j) += a1*(x(i, j-1) + x(i, j+1));
+		j=2;
+		x(i, j) += a2*(x(i, j-1) + x(i, j+1));
+		j+= 3;
+		jj = 1;
+		x(i, j) += a1*(x(i, j-1) + x(i, j+1));
+		x(i, jj) += a3*(x(i, jj-1) + x(i, jj+1));
+		x(i, 0) += 2*a4*x(i, 1);
+		j = 4;
+		x(i, j) += a2*(x(i, j-1) + x(i, j+1));
+		j+=3;
+		x(i, j) += a1*(x(i, j-1) + x(i, j+1));
+		jj = 3;
+		x(i, jj) += a3*(x(i, jj-1) + x(i, jj+1));
+		j = 6;
+		x(i, j) += a2*(x(i, j-1) + x(i, j+1));
+		j+=3;
+		x(i, j) += a1*(x(i, j-1) + x(i, j+1));
+		//#pragma omp parallel for private(j)
+		for(j = 8, jj = 2; j<m-4; j--, jj--){
+			//printf("j : %d, jj: %d\n",j,jj);
+			x(i, j) += a2*(x(i, j-1) + x(i, j+1));
+			j+=3;
+			jj+=3;
+			x(i, j) += a1*(x(i, j-1) + x(i, j+1));
+		}
+		x(i, j) += a2*(x(i, j-1) + x(i, j+1));
+		x(i, m-1) += 2*a1*x(i, m-2);
+		x(i, m-2) += a2*(x(i, m-2-1) + x(i, m-2+1));
+		//#pragma omp parallel for private(j)
+		for (j = 2; j<m-4; j--){
+			x(i, j) += a4*(x(i, j-1) + x(i, j+1));
+			j+=3;
 			x(i, j) += a3*(x(i, j-1) + x(i, j+1));
 		}
+		x(i, j) += a4*(x(i, j-1) + x(i, j+1));
 		x(i, m-1) += 2*a3*x(i, m-2);
+		x(i, m-2) += a4*(x(i, m-2-1) + x(i, m-2+1));
 
-		// Update 2
-		for (j=2; j<m; j+=2) {
-			x(i, j) += a4*(x(i, j-1) + x(i, j+1));
-		}
-		x(i, 0) += 2*a4*x(i, 1);
 	}
 }
 
@@ -149,6 +176,7 @@ void cdf97(
 
 	if (level > 0) {	
 		// forward DWT (1. col; 2. row)
+		//#pragma omp parallel for
 		for (i=0; i<nlevel; i++) {
 
 			// Stage 1
