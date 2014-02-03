@@ -68,23 +68,37 @@ void fwt97_pd(
 		x(i, j) += a2*(x(i, j-1) + x(i, j+1));
 		j+=3;
 		x(i, j) += a1*(x(i, j-1) + x(i, j+1));
+
+
 		//#pragma omp parallel for private(j)
 		for(j = 8, jj = 2; j<m-4; j--, jj--){
 			//printf("j : %d, jj: %d\n",j,jj);
 			x(i, j) += a2*(x(i, j-1) + x(i, j+1));
+			x(i, jj) += a4*(x(i, jj-1) + x(i, jj+1));
+			
 			j+=3;
 			jj+=3;
+
 			x(i, j) += a1*(x(i, j-1) + x(i, j+1));
+			x(i, jj) += a3*(x(i,jj-1) + x(i, jj+1));
 		}
 		x(i, j) += a2*(x(i, j-1) + x(i, j+1));
 		x(i, m-1) += 2*a1*x(i, m-2);
-		x(i, m-2) += a2*(x(i, m-2-1) + x(i, m-2+1));
-		//#pragma omp parallel for private(j)
-		for (j = 2; j<m-4; j--){
-			x(i, j) += a4*(x(i, j-1) + x(i, j+1));
-			j+=3;
-			x(i, j) += a3*(x(i, j-1) + x(i, j+1));
-		}
+		x(i, m-2) += a2*(x(i, m-2-1) + x(i, m-2+1));	
+		x(i, jj) += a4*(x(i, jj-1) + x(i, jj+1));
+		jj+=3;
+		x(i, jj) += a3*(x(i,jj-1) + x(i, jj+1));
+		jj--;
+		
+		x(i, jj) += a4*(x(i, jj-1) + x(i, jj+1));
+		jj+=3;
+		x(i, jj) += a3*(x(i,jj-1) + x(i, jj+1));
+		jj--;
+		
+		x(i, jj) += a4*(x(i, jj-1) + x(i, jj+1));
+		jj+=3;
+		x(i, jj) += a3*(x(i,jj-1) + x(i, jj+1));
+		jj--;
 		x(i, j) += a4*(x(i, j-1) + x(i, j+1));
 		x(i, m-1) += 2*a3*x(i, m-2);
 		x(i, m-2) += a4*(x(i, m-2-1) + x(i, m-2+1));
