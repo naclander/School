@@ -68,8 +68,6 @@ void fwt97_pd(
 		x(i, j) += a2*(x(i, j-1) + x(i, j+1));
 		j+=3;
 		x(i, j) += a1*(x(i, j-1) + x(i, j+1));
-
-
 		//#pragma omp parallel for private(j)
 		for(j = 8, jj = 2; j<m-4; j--, jj--){
 			//printf("j : %d, jj: %d\n",j,jj);
@@ -102,6 +100,177 @@ void fwt97_pd(
 		x(i, j) += a4*(x(i, j-1) + x(i, j+1));
 		x(i, m-1) += 2*a3*x(i, m-2);
 		x(i, m-2) += a4*(x(i, m-2-1) + x(i, m-2+1));
+
+	}
+}
+void fwt97_pd_foo(
+		float* x, 
+		int n, int m,
+		int N, int M, float * tempbank)
+{
+	int i, j, jj, ii, iii, iiii;
+	#pragma omp parallel for private(i,j) 
+	for (i=0; i<n; i+=1) {	
+		ii = i+1;
+		iii = ii+1;
+		iiii = iii+1;
+
+
+		j = 1;
+		x(i, j) += a1*(x(i, j-1) + x(i, j+1));
+		x(i, 0) += 2*a2*x(i, 1);
+		j+=2;
+		x(i, j) += a1*(x(i, j-1) + x(i, j+1));
+		j=2;
+		x(i, j) += a2*(x(i, j-1) + x(i, j+1));
+		j+= 3;
+		jj = 1;
+		x(i, j) += a1*(x(i, j-1) + x(i, j+1));
+		x(i, jj) += a3*(x(i, jj-1) + x(i, jj+1));
+		x(i, 0) += 2*a4*x(i, 1);
+		j = 4;
+		x(i, j) += a2*(x(i, j-1) + x(i, j+1));
+		j+=3;
+		x(i, j) += a1*(x(i, j-1) + x(i, j+1));
+		jj = 3;
+		x(i, jj) += a3*(x(i, jj-1) + x(i, jj+1));
+		j = 6;
+		x(i, j) += a2*(x(i, j-1) + x(i, j+1));
+		j+=3;
+		x(i, j) += a1*(x(i, j-1) + x(i, j+1));
+		//#pragma omp parallel for private(j)
+		for(j = 8, jj = 2; j<m-4; j--, jj--){
+			//printf("j : %d, jj: %d\n",j,jj);
+			x(i, j) += a2*(x(i, j-1) + x(i, j+1));
+			x(i, jj) += a4*(x(i, jj-1) + x(i, jj+1));
+			
+			j+=3;
+			jj+=3;
+
+			x(i, j) += a1*(x(i, j-1) + x(i, j+1));
+			x(i, jj) += a3*(x(i,jj-1) + x(i, jj+1));
+		}
+		x(i, j) += a2*(x(i, j-1) + x(i, j+1));
+		x(i, m-1) += 2*a1*x(i, m-2);
+		x(i, m-2) += a2*(x(i, m-2-1) + x(i, m-2+1));	
+		x(i, jj) += a4*(x(i, jj-1) + x(i, jj+1));
+		jj+=3;
+		x(i, jj) += a3*(x(i,jj-1) + x(i, jj+1));
+		jj--;
+		
+		x(i, jj) += a4*(x(i, jj-1) + x(i, jj+1));
+		jj+=3;
+		x(i, jj) += a3*(x(i,jj-1) + x(i, jj+1));
+		jj--;
+		
+		x(i, jj) += a4*(x(i, jj-1) + x(i, jj+1));
+		jj+=3;
+		x(i, jj) += a3*(x(i,jj-1) + x(i, jj+1));
+		jj--;
+		x(i, j) += a4*(x(i, j-1) + x(i, j+1));
+		x(i, m-1) += 2*a3*x(i, m-2);
+		x(i, m-2) += a4*(x(i, m-2-1) + x(i, m-2+1));
+
+		double k2 = 1/1.1496043988602418;
+	   // de-interleave and transpose
+        // simultaneously transpose the matrix when deinterleaving
+		for (j=0; j<m/2; j+= 2) {
+			tempbank(j/2, i) = k1*x(i, j);
+		}
+		int jj;
+		for (jj = 1; j<m; j+= 2, jj += 2) {
+			tempbank(j/2, i) = k1*x(i, j);
+			tempbank(jj/2+m/2, i) = k2*x(i, jj);
+		}
+		for(; jj<m; jj+= 2){
+				tempbank(jj/2+m/2, i) = k2*x(i, jj);
+		}
+
+
+	}
+}
+void fwt97_pd_bar(
+		float* x, 
+		int n, int m,
+		int N, int M, float * tempbank, int N2, int M2)
+{
+	int i, j, jj, ii, iii, iiii;
+	#pragma omp parallel for private(i,j) 
+	for (i=0; i<n; i+=1) {	
+		ii = i+1;
+		iii = ii+1;
+		iiii = iii+1;
+
+
+		j = 1;
+		x(i, j) += a1*(x(i, j-1) + x(i, j+1));
+		x(i, 0) += 2*a2*x(i, 1);
+		j+=2;
+		x(i, j) += a1*(x(i, j-1) + x(i, j+1));
+		j=2;
+		x(i, j) += a2*(x(i, j-1) + x(i, j+1));
+		j+= 3;
+		jj = 1;
+		x(i, j) += a1*(x(i, j-1) + x(i, j+1));
+		x(i, jj) += a3*(x(i, jj-1) + x(i, jj+1));
+		x(i, 0) += 2*a4*x(i, 1);
+		j = 4;
+		x(i, j) += a2*(x(i, j-1) + x(i, j+1));
+		j+=3;
+		x(i, j) += a1*(x(i, j-1) + x(i, j+1));
+		jj = 3;
+		x(i, jj) += a3*(x(i, jj-1) + x(i, jj+1));
+		j = 6;
+		x(i, j) += a2*(x(i, j-1) + x(i, j+1));
+		j+=3;
+		x(i, j) += a1*(x(i, j-1) + x(i, j+1));
+		//#pragma omp parallel for private(j)
+		for(j = 8, jj = 2; j<m-4; j--, jj--){
+			//printf("j : %d, jj: %d\n",j,jj);
+			x(i, j) += a2*(x(i, j-1) + x(i, j+1));
+			x(i, jj) += a4*(x(i, jj-1) + x(i, jj+1));
+			
+			j+=3;
+			jj+=3;
+
+			x(i, j) += a1*(x(i, j-1) + x(i, j+1));
+			x(i, jj) += a3*(x(i,jj-1) + x(i, jj+1));
+		}
+		x(i, j) += a2*(x(i, j-1) + x(i, j+1));
+		x(i, m-1) += 2*a1*x(i, m-2);
+		x(i, m-2) += a2*(x(i, m-2-1) + x(i, m-2+1));	
+		x(i, jj) += a4*(x(i, jj-1) + x(i, jj+1));
+		jj+=3;
+		x(i, jj) += a3*(x(i,jj-1) + x(i, jj+1));
+		jj--;
+		
+		x(i, jj) += a4*(x(i, jj-1) + x(i, jj+1));
+		jj+=3;
+		x(i, jj) += a3*(x(i,jj-1) + x(i, jj+1));
+		jj--;
+		
+		x(i, jj) += a4*(x(i, jj-1) + x(i, jj+1));
+		jj+=3;
+		x(i, jj) += a3*(x(i,jj-1) + x(i, jj+1));
+		jj--;
+		x(i, j) += a4*(x(i, j-1) + x(i, j+1));
+		x(i, m-1) += 2*a3*x(i, m-2);
+		x(i, m-2) += a4*(x(i, m-2-1) + x(i, m-2+1));
+
+		double k2 = 1/1.1496043988602418;
+	    // de-interleave and transpose
+        // simultaneously transpose the matrix when deinterleaving
+		for (j=0; j<m/2; j+= 2) {
+			tempbank[(j/2)*N2+i] = k1*x[i*m+j];
+		}
+		int jj;
+		for (j=m/2, jj = 1; j<m; j+= 2, jj+=2) {
+			tempbank[(j/2)*N2+i] = k1*x[i*m+j];
+			tempbank[(jj/2+m/2)*N2+i] = k2*x[i*m+jj];
+		}
+		for (; jj<m; jj+= 2) {
+			tempbank[(jj/2+m/2)*N2+i] = k2*x[i*m+jj];
+		}
 
 	}
 }
@@ -204,16 +373,21 @@ void cdf97(
 		for (i=0; i<nlevel; i++) {
 
 			// Stage 1
-			fwt97_pd(x, m, n, M, N);
+			//fwt97_pd(x, m, n, M, N);
 
 			// Stage 2
-			fwt97_dl_foo(x, tempbank, m, n, M, N);
+			//fwt97_dl_foo(x, tempbank, m, n, M, N);
+
+			fwt97_pd_foo(x, m, n, M, N, tempbank);
+			
 
 			// Stage 3
-			fwt97_pd(tempbank, n, m, n, m);
+			//fwt97_pd(tempbank, n, m, n, m);
 
-			// Stage 4
-			fwt97_dl_bar(x, tempbank, n, m, N, M);
+			//fwt97_dl_bar(x, tempbank, n, m, N, M);
+			
+			fwt97_pd_bar(tempbank, n, m, n, m, x, N, M);
+
 
 			// work on the upper left image (low pass filtered) in the next level
 			n /= 2;
